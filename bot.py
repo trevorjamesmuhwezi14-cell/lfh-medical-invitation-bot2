@@ -28,14 +28,35 @@ def font(size, bold=False):
 def make_invitation(guest):
     img = Image.open(TEMPLATE).convert("RGB")
     draw = ImageDraw.Draw(img)
-    draw.rectangle((48, 505, 976, 566), fill="white")
-    f = font(31, bold=False)
+
+    # Clear the template's blank invitee-name line.
+    draw.rectangle((48, 505, 976, 575), fill="white")
+
+    # Center the invitee name and add a clean underline.
     blue = (18, 63, 134)
     text = guest.strip()
-    max_width = 900
-    if draw.textbbox((0, 0), text, font=f)[2] > max_width:
-        f = font(26)
-    draw.text((65, 520), text, font=f, fill=blue)
+    f = font(32, bold=False)
+
+    max_width = 850
+    bbox = draw.textbbox((0, 0), text, font=f)
+    text_width = bbox[2] - bbox[0]
+
+    if text_width > max_width:
+        f = font(27, bold=False)
+        bbox = draw.textbbox((0, 0), text, font=f)
+        text_width = bbox[2] - bbox[0]
+
+    # Center horizontally on the 1024px-wide invitation.
+    x = (1024 - text_width) / 2
+    y = 510
+    draw.text((x, y), text, font=f, fill=blue)
+
+    # Underline follows the name and is also centered.
+    line_width = min(max(text_width + 70, 250), 850)
+    line_x1 = (1024 - line_width) / 2
+    line_x2 = line_x1 + line_width
+    draw.line((line_x1, 566, line_x2, 566), fill=blue, width=3)
+
     out = io.BytesIO()
     out.name = "LFH_Medical_Launch_Invitation.jpg"
     img.save(out, format="JPEG", quality=95, optimize=True)
